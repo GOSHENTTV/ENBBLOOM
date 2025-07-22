@@ -875,48 +875,15 @@ SamplerState SamplerNoise
 float4 PS_RDR2Clouds(VS_OUTPUT_POST IN) : SV_Target
 {
     float4 color = TextureColor.Sample(Sampler1, IN.txcoord0.xy);
-    float cloudDensity = 0.0;
-    float cloudNoise = 0.0;
-    float cloudSpeed = 0.0;
 
-    const int weather = (int)qWeather.x;
+    const float density[16] = { CloudDensity_ExtraSunny, 0, CloudDensity_Clear, CloudDensity_Clearing, CloudDensity_Clouds, 0, 0, 0, CloudDensity_Rain, 0, 0, CloudDensity_Neutral, 0, 0, 0, 0 };
+    const float noise[16] = { CloudNoise_ExtraSunny, 0, CloudNoise_Clear, CloudNoise_Clearing, CloudNoise_Clouds, 0, 0, 0, CloudNoise_Rain, 0, 0, CloudNoise_Neutral, 0, 0, 0, 0 };
+    const float speed[16] = { CloudSpeed_ExtraSunny, 0, CloudSpeed_Clear, CloudSpeed_Clearing, CloudSpeed_Clouds, 0, 0, 0, CloudSpeed_Rain, 0, 0, CloudSpeed_Neutral, 0, 0, 0, 0 };
 
-    if (weather == 0) // w_extrasunny
-    {
-        cloudDensity = CloudDensity_ExtraSunny;
-        cloudNoise = CloudNoise_ExtraSunny;
-        cloudSpeed = CloudSpeed_ExtraSunny;
-    }
-    else if (weather == 2) // w_clear
-    {
-        cloudDensity = CloudDensity_Clear;
-        cloudNoise = CloudNoise_Clear;
-        cloudSpeed = CloudSpeed_Clear;
-    }
-    else if (weather == 3) // w_clearing
-    {
-        cloudDensity = CloudDensity_Clearing;
-        cloudNoise = CloudNoise_Clearing;
-        cloudSpeed = CloudSpeed_Clearing;
-    }
-    else if (weather == 11) // w_neutral
-    {
-        cloudDensity = CloudDensity_Neutral;
-        cloudNoise = CloudNoise_Neutral;
-        cloudSpeed = CloudSpeed_Neutral;
-    }
-    else if (weather == 8) // w_rain
-    {
-        cloudDensity = CloudDensity_Rain;
-        cloudNoise = CloudNoise_Rain;
-        cloudSpeed = CloudSpeed_Rain;
-    }
-    else if (weather == 4) // w_clouds
-    {
-        cloudDensity = CloudDensity_Clouds;
-        cloudNoise = CloudNoise_Clouds;
-        cloudSpeed = CloudSpeed_Clouds;
-    }
+    float cloudDensity = lerp(density[(int)qWeather.x], density[(int)qWeather.y], qWeather.z);
+    float cloudNoise = lerp(noise[(int)qWeather.x], noise[(int)qWeather.y], qWeather.z);
+    float cloudSpeed = lerp(speed[(int)qWeather.x], speed[(int)qWeather.y], qWeather.z);
+
 
     if (cloudDensity > 0.0)
     {
@@ -926,10 +893,10 @@ float4 PS_RDR2Clouds(VS_OUTPUT_POST IN) : SV_Target
         // Apply animated noise (with speed)
         float2 noise_uv = IN.txcoord0.xy * ScreenSize.xy / 256.0;
         noise_uv.y += Timer.x * cloudSpeed * 0.01;
-        float noise = noisetex.Sample(SamplerNoise, noise_uv).r;
+        float noiseVal = noisetex.Sample(SamplerNoise, noise_uv).r;
 
         // Combine with noise
-        color.a *= 1.0 - (1.0 - noise) * cloudNoise;
+        color.a *= 1.0 - (1.0 - noiseVal) * cloudNoise;
     }
 
     return color;
