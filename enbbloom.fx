@@ -18,9 +18,36 @@ Texture2D RenderTarget32;
 Texture2D RenderTargetRGBA32;
 Texture2D RenderTargetRGBA64F;
 // === Cloud Controls ===
-uniform float CloudDensity < string UIName = "Cloud Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
-uniform float CloudNoise   < string UIName = "Cloud Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
-uniform float CloudSpeed   < string UIName = "Cloud Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
+
+// w_extrasunny
+uniform float CloudDensity_ExtraSunny < string UIName = "Clouds ExtraSunny: Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
+uniform float CloudNoise_ExtraSunny   < string UIName = "Clouds ExtraSunny: Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
+uniform float CloudSpeed_ExtraSunny   < string UIName = "Clouds ExtraSunny: Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
+
+// w_clear
+uniform float CloudDensity_Clear < string UIName = "Clouds Clear: Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
+uniform float CloudNoise_Clear   < string UIName = "Clouds Clear: Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
+uniform float CloudSpeed_Clear   < string UIName = "Clouds Clear: Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
+
+// w_clearing
+uniform float CloudDensity_Clearing < string UIName = "Clouds Clearing: Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
+uniform float CloudNoise_Clearing   < string UIName = "Clouds Clearing: Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
+uniform float CloudSpeed_Clearing   < string UIName = "Clouds Clearing: Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
+
+// w_neutral
+uniform float CloudDensity_Neutral < string UIName = "Clouds Neutral: Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
+uniform float CloudNoise_Neutral   < string UIName = "Clouds Neutral: Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
+uniform float CloudSpeed_Neutral   < string UIName = "Clouds Neutral: Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
+
+// w_rain
+uniform float CloudDensity_Rain < string UIName = "Clouds Rain: Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
+uniform float CloudNoise_Rain   < string UIName = "Clouds Rain: Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
+uniform float CloudSpeed_Rain   < string UIName = "Clouds Rain: Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
+
+// w_clouds
+uniform float CloudDensity_Clouds < string UIName = "Clouds Clouds: Density"; float UIMin = 0.0; float UIMax = 2.0; > = 1.0;
+uniform float CloudNoise_Clouds   < string UIName = "Clouds Clouds: Noise"; float UIMin = 0.0; float UIMax = 1.0; > = 0.5;
+uniform float CloudSpeed_Clouds   < string UIName = "Clouds Clouds: Speed"; float UIMin = 0.0; float UIMax = 5.0; > = 1.0;
 
 Texture2D noisetex < string ResourceName = "AaronX/18690.png"; > ;
 Texture2D ray < string ResourceName = "AaronX/lightning.png"; > ;
@@ -848,23 +875,61 @@ SamplerState SamplerNoise
 float4 PS_RDR2Clouds(VS_OUTPUT_POST IN) : SV_Target
 {
     float4 color = TextureColor.Sample(Sampler1, IN.txcoord0.xy);
+    float cloudDensity = 0.0;
+    float cloudNoise = 0.0;
+    float cloudSpeed = 0.0;
 
-    // Weather check
     const int weather = (int)qWeather.x;
-    bool isCloudyWeather = (weather == 0 || weather == 2 || weather == 3 || weather == 4 || weather == 8 || weather == 9 || weather == 11);
 
-    if (isCloudyWeather)
+    if (weather == 0) // w_extrasunny
+    {
+        cloudDensity = CloudDensity_ExtraSunny;
+        cloudNoise = CloudNoise_ExtraSunny;
+        cloudSpeed = CloudSpeed_ExtraSunny;
+    }
+    else if (weather == 2) // w_clear
+    {
+        cloudDensity = CloudDensity_Clear;
+        cloudNoise = CloudNoise_Clear;
+        cloudSpeed = CloudSpeed_Clear;
+    }
+    else if (weather == 3) // w_clearing
+    {
+        cloudDensity = CloudDensity_Clearing;
+        cloudNoise = CloudNoise_Clearing;
+        cloudSpeed = CloudSpeed_Clearing;
+    }
+    else if (weather == 11) // w_neutral
+    {
+        cloudDensity = CloudDensity_Neutral;
+        cloudNoise = CloudNoise_Neutral;
+        cloudSpeed = CloudSpeed_Neutral;
+    }
+    else if (weather == 8) // w_rain
+    {
+        cloudDensity = CloudDensity_Rain;
+        cloudNoise = CloudNoise_Rain;
+        cloudSpeed = CloudSpeed_Rain;
+    }
+    else if (weather == 4) // w_clouds
+    {
+        cloudDensity = CloudDensity_Clouds;
+        cloudNoise = CloudNoise_Clouds;
+        cloudSpeed = CloudSpeed_Clouds;
+    }
+
+    if (cloudDensity > 0.0)
     {
         // Apply cloud density
-        color.a *= CloudDensity;
+        color.a *= cloudDensity;
 
         // Apply animated noise (with speed)
         float2 noise_uv = IN.txcoord0.xy * ScreenSize.xy / 256.0;
-        noise_uv.y += Timer.x * CloudSpeed * 0.01;
+        noise_uv.y += Timer.x * cloudSpeed * 0.01;
         float noise = noisetex.Sample(SamplerNoise, noise_uv).r;
 
         // Combine with noise
-        color.a *= 1.0 - (1.0 - noise) * CloudNoise;
+        color.a *= 1.0 - (1.0 - noise) * cloudNoise;
     }
 
     return color;
