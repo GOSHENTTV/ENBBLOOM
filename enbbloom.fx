@@ -7,7 +7,6 @@
 uniform float Timer < string UIName="Timer"; int UIHidden=1; >;
 uniform float3 SunDirection < string UIName="Sun Direction"; int UIHidden=1; >;
 uniform float WeatherType < string UIName="Weather Type"; int UIHidden=1; >;
-uniform float3 CameraPosition < string UIName="Camera Position"; int UIHidden=1; >;
 
 // === Cloud Controls ===
 uniform float CloudDensity < string UIName = "Cloud Density"; float UIMin = 0.0; float UIMax = 10.0; > = 1.0;
