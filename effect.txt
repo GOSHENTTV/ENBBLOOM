@@ -1,0 +1,24 @@
+// ENBSeries Effect File (effect.txt)
+// This file defines the rendering pipeline for the custom effects.
+
+[EFFECT]
+Enable=true
+
+// 1. Render the volumetric clouds
+[PASS_0]
+Shader=dansaaronx.fx
+Technique=VolumetricClouds
+RenderTarget=RenderTargetRGBA64F
+
+// 2. Render the bloom effect
+[PASS_1]
+Shader=enbbloom.fx
+Technique=AaronXBloom
+InputTexture=RenderTargetRGBA64F
+RenderTarget=RenderTarget1024
+
+// 3. Apply post-processing
+[PASS_2]
+Shader=postpass.fx
+Technique=PostProcess
+InputTexture=RenderTarget1024
