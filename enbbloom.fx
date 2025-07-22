@@ -27,6 +27,17 @@ SamplerState Sampler1
 	AddressV = Clamp;
 };
 
+struct VS_INPUT_POST
+{
+	float3 pos	: POSITION;
+	float2 txcoord	: TEXCOORD0;
+};
+struct VS_OUTPUT_POST
+{
+	float4 pos	: SV_POSITION;
+	float2 txcoord0	: TEXCOORD0;
+};
+
 VS_OUTPUT_POST VS_Quad(VS_INPUT_POST IN)
 {
 	VS_OUTPUT_POST OUT;
