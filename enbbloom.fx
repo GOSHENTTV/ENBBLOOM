@@ -838,24 +838,34 @@ technique11 ModernBloom < string UIName = "Bloom moderne"; >
     }
 }
 
+SamplerState SamplerNoise
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
 float4 PS_RDR2Clouds(VS_OUTPUT_POST IN) : SV_Target
 {
     float4 color = TextureColor.Sample(Sampler1, IN.txcoord0.xy);
 
-    // Apply cloud density
-    color.a *= CloudDensity;
+    // Weather check
+    const int weather = (int)qWeather.x;
+    bool isCloudyWeather = (weather == 0 || weather == 2 || weather == 3 || weather == 4 || weather == 8 || weather == 9 || weather == 11);
 
-    // Apply animated noise (with speed)
-    float2 noise_uv = IN.txcoord0.xy * ScreenSize.xy / 256.0;
-    noise_uv += Timer.x * CloudSpeed;
-    float noise = tex2D(noisetex, noise_uv).r;
+    if (isCloudyWeather)
+    {
+        // Apply cloud density
+        color.a *= CloudDensity;
 
-    // Combine with noise
-    color.a *= 1.0 - (1.0 - noise) * CloudNoise;
+        // Apply animated noise (with speed)
+        float2 noise_uv = IN.txcoord0.xy * ScreenSize.xy / 256.0;
+        noise_uv.y += Timer.x * CloudSpeed * 0.01;
+        float noise = noisetex.Sample(SamplerNoise, noise_uv).r;
 
-    return color;
-}
-    color.rgb = lerp(color.rgb, wind_color.rgb, wind_color.a);
+        // Combine with noise
+        color.a *= 1.0 - (1.0 - noise) * CloudNoise;
+    }
 
     return color;
 }
